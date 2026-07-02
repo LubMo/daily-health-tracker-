@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3E7C63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Health Tracker">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Daily Health Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F5EF;
+    --bg-deep:#EAF0E6;
+    --surface:#FFFFFF;
+    --ink:#1F3B33;
+    --ink-soft:#5C7069;
+    --ink-faint:#8B9A93;
+    --green:#3E7C63;
+    --green-dark:#2A5344;
+    --green-pale:#DCEBE2;
+    --amber:#D98F4E;
+    --amber-pale:#F7E5D2;
+    --plum:#8B4B6B;
+    --plum-pale:#EFDCE6;
+    --line:#E3E7DD;
+    --danger:#B5493C;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    --shadow:0 2px 14px rgba(31,59,51,0.07);
+    --font-display:'Fraunces', serif;
+    --font-body:'Manrope', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.45;
+    padding-bottom:48px;
+  }
+
+  a{color:inherit;}
+
+  :focus-visible{
+    outline:2.5px solid var(--green-dark);
+    outline-offset:2px;
+    border-radius:4px;
+  }
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 16px;
+  }
+
+  /* ---------- Header ---------- */
+  header.top{
+    background:linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 100%);
+    padding:22px 0 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--green-dark);
+    margin:0 0 4px;
+  }
+  h1.title{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:clamp(26px,6vw,34px);
+    margin:0 0 2px;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:14.5px;
+    margin:0;
+  }
+
+  /* ---------- Rings ---------- */
+  .rings-card{
+    margin-top:18px;
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    padding:18px 14px 14px;
+    display:flex;
+    justify-content:space-between;
+    gap:6px;
+  }
+  .ring-item{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .ring-item svg{ width:88px; height:88px; }
+  .ring-track{ fill:none; stroke:var(--bg-deep); stroke-width:9; }
+  .ring-progress{
+    fill:none;
+    stroke-width:9;
+    stroke-linecap:round;
+    transform:rotate(-90deg);
+    transform-origin:50% 50%;
+    transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ring-progress{ transition:none; }
+  }
+  .ring-num{
+    font-family:var(--font-mono);
+    font-weight:600;
+    font-size:15px;
+    fill:var(--ink);
+  }
+  .ring-label{
+    margin-top:6px;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+  }
+  .ring-sub{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--ink-faint);
+    margin-top:1px;
+  }
+
+  /* ---------- Sections ---------- */
+  section{ margin-top:26px; }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  h2.section-title{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:20px;
+    margin:0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title .dot{
+    width:9px; height:9px; border-radius:50%; display:inline-block;
+  }
+  .section-note{ font-size:12.5px; color:var(--ink-faint); }
+
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    padding:16px;
+    border-top:3px solid var(--green);
+  }
+  .card + .card{ margin-top:12px; }
+  .card.amber-top{ border-top-color:var(--amber); }
+  .card.plum-top{ border-top-color:var(--plum); }
+
+  .meal-name{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:17px;
+    margin:0 0 2px;
+  }
+  .meal-total{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-bottom:10px;
+  }
+  .chip{
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:13px;
+    background:var(--green-pale);
+    color:var(--green-dark);
+    border:1px solid transparent;
+    padding:7px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .chip:hover{ background:#CDE3D6; }
+  .chip:active{ transform:scale(.95); }
+  .chip .cal{ opacity:.65; font-family:var(--font-mono); font-size:11px; margin-left:4px;}
+
+  .log-list{ list-style:none; margin:0; padding:0; }
+  .log-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+    font-size:14px;
+  }
+  .log-item:last-child{ border-bottom:none; }
+  .log-item .li-name{ font-weight:600; }
+  .log-item .li-meta{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--ink-faint);
+  }
+  .li-right{ display:flex; align-items:center; gap:10px; }
+  .li-cal{ font-family:var(--font-mono); font-size:13px; color:var(--green-dark); font-weight:600; white-space:nowrap;}
+  .remove-btn{
+    background:none; border:none; color:var(--ink-faint);
+    font-size:17px; line-height:1; cursor:pointer; padding:2px 4px;
+    border-radius:6px;
+  }
+  .remove-btn:hover{ color:var(--danger); background:#fbeae7;}
+
+  .empty-hint{ font-size:13px; color:var(--ink-faint); padding:4px 0 8px; }
+
+  details.custom-toggle{ margin-top:6px; }
+  details.custom-toggle > summary{
+    cursor:pointer;
+    font-size:13px;
+    font-weight:700;
+    color:var(--green-dark);
+    list-style:none;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  details.custom-toggle > summary::-webkit-details-marker{ display:none; }
+  details.custom-toggle > summary:before{ content:"+"; font-size:16px; }
+  details.custom-toggle[open] > summary:before{ content:"–"; }
+
+  .custom-form{
+    margin-top:10px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .custom-form .full{ grid-column:1 / -1; }
+  .field{ display:flex; flex-direction:column; gap:3px; }
+  .field label{ font-size:11px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.04em;}
+  .field input{
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:8px 9px;
+    font-family:var(--font-body);
+    font-size:14px;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .field input:focus{ background:var(--surface); }
+  .add-btn{
+    grid-column:1 / -1;
+    margin-top:2px;
+    background:var(--green-dark);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:10px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .add-btn:hover{ background:var(--green); }
+
+  /* ---------- Water ---------- */
+  .water-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .water-buttons{ display:flex; gap:8px; }
+  .round-btn{
+    width:44px; height:44px;
+    border-radius:50%;
+    border:1.5px solid var(--amber);
+    background:var(--amber-pale);
+    color:var(--amber);
+    font-size:20px;
+    font-weight:700;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .round-btn:hover{ background:var(--amber); color:#fff; }
+  .round-btn.minus{ border-color:var(--ink-faint); background:var(--bg-deep); color:var(--ink-soft); }
+  .round-btn.minus:hover{ background:var(--line); color:var(--ink); }
+  .water-count{
+    font-family:var(--font-mono);
+    font-size:26px;
+    font-weight:600;
+    min-width:88px;
+  }
+  .water-count span{ font-size:14px; color:var(--ink-faint); font-family:var(--font-body); font-weight:600;}
+  .goal-edit{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .goal-edit input{
+    width:56px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:5px 7px;
+    font-family:var(--font-mono);
+    font-size:13px;
+  }
+
+  .progress-bar{
+    margin-top:12px;
+    height:10px;
+    border-radius:99px;
+    background:var(--bg-deep);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    border-radius:99px;
+    transition:width .5s ease;
+  }
+  @media (prefers-reduced-motion: reduce){ .progress-fill{ transition:none; } }
+
+  /* ---------- Exercise ---------- */
+  .ex-form{
+    display:grid;
+    grid-template-columns:1fr 90px;
+    gap:10px;
+    margin-top:4px;
+  }
+  .ex-form select{
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:9px 10px;
+    font-family:var(--font-body);
+    font-size:14px;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .ex-form input{
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:9px 10px;
+    font-family:var(--font-mono);
+    font-size:14px;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .ex-preview{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+
+  /* ---------- Steps ---------- */
+  .steps-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .steps-row input{
+    flex:1;
+    min-width:120px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+    font-family:var(--font-mono);
+    font-size:18px;
+    background:var(--bg);
+    color:var(--ink);
+  }
+
+  /* ---------- Summary ---------- */
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .stat-box{
+    background:var(--bg-deep);
+    border-radius:var(--radius-md);
+    padding:12px 10px;
+    text-align:center;
+  }
+  .stat-box .val{
+    font-family:var(--font-mono);
+    font-weight:600;
+    font-size:19px;
+    color:var(--green-dark);
+  }
+  .stat-box .lbl{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  .macro-row{ margin-bottom:10px; }
+  .macro-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+    margin-bottom:4px;
+  }
+  .macro-label .name{ font-weight:700; }
+  .macro-label .amt{ font-family:var(--font-mono); color:var(--ink-soft); }
+  .macro-track{
+    height:7px;
+    border-radius:99px;
+    background:var(--bg-deep);
+    overflow:hidden;
+  }
+  .macro-fill{ height:100%; border-radius:99px; transition:width .5s ease; }
+  @media (prefers-reduced-motion: reduce){ .macro-fill{ transition:none; } }
+
+  .summary-bars{ margin-top:16px; }
+  .sb-item{ margin-bottom:14px; }
+  .sb-label{
+    display:flex; justify-content:space-between;
+    font-size:13px; font-weight:700; margin-bottom:5px;
+  }
+  .sb-label .amt{ font-family:var(--font-mono); font-weight:600; color:var(--ink-soft); }
+
+
+
+  /* ---------- Enhanced controls ---------- */
+  .date-row{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;
+  }
+  .date-row input, .goal-grid input, .notes-grid input, .notes-grid textarea, .portion-select{
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:9px 10px;
+    font-family:var(--font-body);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .mini-btn{
+    background:var(--green-dark); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:9px 12px; font-weight:700; cursor:pointer; font-family:var(--font-body);
+  }
+  .mini-btn.secondary{ background:var(--bg-deep); color:var(--green-dark); border:1px solid var(--line); }
+  .mini-btn.danger{ background:var(--danger); color:#fff; }
+  .goal-grid, .notes-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
+  }
+  .goal-grid .field.full, .notes-grid .field.full{ grid-column:1 / -1; }
+  .notes-grid textarea{ min-height:74px; resize:vertical; }
+  .portion-tool{ display:flex; align-items:center; gap:8px; margin:0 0 12px; flex-wrap:wrap; font-size:13px; color:var(--ink-soft); font-weight:700; }
+  .history-table{ width:100%; border-collapse:collapse; font-size:13px; overflow:hidden; }
+  .history-table th, .history-table td{ padding:8px 6px; border-bottom:1px solid var(--line); text-align:left; }
+  .history-table th{ color:var(--ink-soft); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+  .today-pill{ display:inline-block; padding:2px 7px; border-radius:99px; background:var(--green-pale); color:var(--green-dark); font-size:11px; font-weight:800; }
+  .action-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  @media (max-width:520px){ .goal-grid, .notes-grid{ grid-template-columns:1fr; } }
+
+  footer.foot{
+    text-align:center;
+    margin-top:34px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+  .reset-link{
+    background:none;border:none;text-decoration:underline;
+    color:var(--ink-faint); cursor:pointer; font-size:12px; font-family:var(--font-body);
+  }
+  .reset-link:hover{ color:var(--danger); }
+
+  @media (max-width:420px){
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .rings-card{ padding:16px 8px 12px; }
+    .ring-item svg{ width:76px; height:76px; }
+  }
+
+  /* ---------- Save status & Toast/Undo ---------- */
+  .save-status{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11px; color:var(--ink-faint); font-family:var(--font-mono);
+  }
+  .save-status .dot-ind{ width:6px; height:6px; border-radius:50%; background:var(--green); transition:background .2s; }
+  .save-status.error .dot-ind{ background:var(--danger); }
+  .save-status.saving .dot-ind{ background:var(--amber); }
+
+  .toast-wrap{
+    position:fixed; left:0; right:0; bottom:16px; z-index:999;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    pointer-events:none;
+  }
+  .toast{
+    pointer-events:auto;
+    display:flex; align-items:center; gap:14px;
+    background:var(--ink); color:#fff;
+    padding:10px 14px; border-radius:var(--radius-md);
+    font-size:13px; font-weight:600;
+    box-shadow:0 6px 20px rgba(0,0,0,0.22);
+    max-width:90vw;
+    animation:toast-in .18s ease-out;
+  }
+  .toast.error-toast{ background:var(--danger); }
+  .toast button{
+    background:none; border:none; color:#fff; font-weight:800;
+    font-family:var(--font-body); font-size:13px; cursor:pointer;
+    text-decoration:underline; padding:0; flex-shrink:0;
+  }
+  @keyframes toast-in{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow" id="today-date">Today</p>
+    <h1 class="title">Daily Health Tracker</h1>
+    <p class="subtitle">Small, consistent habits — saved automatically.</p>
+    <div class="date-row">
+      <input type="date" id="log-date" aria-label="Choose log date">
+      <button class="mini-btn secondary" id="today-btn" type="button">Today</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- RINGS -->
+  <div class="rings-card" id="rings-card">
+    <div class="ring-item">
+      <svg viewBox="0 0 100 100">
+        <circle class="ring-track" cx="50" cy="50" r="42"></circle>
+        <circle class="ring-progress" id="ring-cal" cx="50" cy="50" r="42" stroke="#3E7C63" stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle>
+        <text x="50" y="55" text-anchor="middle" class="ring-num" id="ring-cal-text">0</text>
+      </svg>
+      <div class="ring-label">Calories</div>
+      <div class="ring-sub" id="ring-cal-sub">of 2000</div>
+    </div>
+    <div class="ring-item">
+      <svg viewBox="0 0 100 100">
+        <circle class="ring-track" cx="50" cy="50" r="42"></circle>
+        <circle class="ring-progress" id="ring-water" cx="50" cy="50" r="42" stroke="#D98F4E" stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle>
+        <text x="50" y="55" text-anchor="middle" class="ring-num" id="ring-water-text">0</text>
+      </svg>
+      <div class="ring-label">Water</div>
+      <div class="ring-sub" id="ring-water-sub">of 8 cups</div>
+    </div>
+    <div class="ring-item">
+      <svg viewBox="0 0 100 100">
+        <circle class="ring-track" cx="50" cy="50" r="42"></circle>
+        <circle class="ring-progress" id="ring-steps" cx="50" cy="50" r="42" stroke="#8B4B6B" stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle>
+        <text x="50" y="55" text-anchor="middle" class="ring-num" id="ring-steps-text">0</text>
+      </svg>
+      <div class="ring-label">Steps</div>
+      <div class="ring-sub" id="ring-steps-sub">of 10,000</div>
+    </div>
+  </div>
+
+
+
+  <!-- GOALS & WEIGHT -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--green-dark)"></span>Goals & Weight</h2>
+      <span class="section-note">saved automatically</span>
+    </div>
+    <div class="card">
+      <div class="goal-grid">
+        <div class="field"><label>Calorie goal</label><input type="number" id="goal-calories" min="800" step="50" value="2000"></div>
+        <div class="field"><label>Step goal</label><input type="number" id="goal-steps" min="1000" step="500" value="10000"></div>
+        <div class="field"><label>Today\'s weight</label><input type="number" id="today-weight" min="0" step="0.1" placeholder="lb or kg"></div>
+        <div class="field"><label>Goal weight</label><input type="number" id="goal-weight" min="0" step="0.1" placeholder="lb or kg"></div>
+      </div>
+      <div class="ex-preview" id="weight-progress">Add weight to track progress.</div>
+    </div>
+  </section>
+
+  <!-- FOOD -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--green)"></span>Food</h2>
+      <span class="section-note">tap a food to log it</span>
+    </div>
+    <div class="portion-tool">Portion: <select id="portion-select" class="portion-select"><option value="0.5">½ serving</option><option value="1" selected>1 serving</option><option value="1.5">1½ servings</option><option value="2">2 servings</option></select></div>
+    <div id="meals-container"></div>
+  </section>
+
+  <!-- WATER -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--amber)"></span>Water</h2>
+    </div>
+    <div class="card amber-top">
+      <div class="water-row">
+        <div class="water-buttons">
+          <button class="round-btn minus" id="water-minus" aria-label="Remove one cup">−</button>
+          <button class="round-btn" id="water-plus" aria-label="Add one cup">+</button>
+        </div>
+        <div class="water-count"><span id="water-val">0</span><span> / <span id="water-goal-label">8</span> cups</span></div>
+        <div class="goal-edit">
+          Goal
+          <input type="number" id="water-goal-input" value="8" min="1" max="30">
+          cups
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="water-bar" style="width:0%; background:var(--amber);"></div></div>
+    </div>
+  </section>
+
+  <!-- EXERCISE -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--plum)"></span>Exercise</h2>
+    </div>
+    <div class="card plum-top">
+      <div class="chip-row" id="exercise-chips"></div>
+      <div class="ex-form">
+        <select id="ex-type"></select>
+        <input type="number" id="ex-duration" placeholder="mins" min="1" value="30">
+      </div>
+      <div class="ex-preview" id="ex-preview">≈ 0 cal for 30 min</div>
+      <button class="add-btn" id="ex-add-btn" style="margin-top:10px;">Log exercise</button>
+      <ul class="log-list" id="exercise-list" style="margin-top:6px;"></ul>
+    </div>
+  </section>
+
+  <!-- STEPS -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--plum)"></span>Steps</h2>
+    </div>
+    <div class="card plum-top">
+      <div class="steps-row">
+        <input type="number" id="steps-input" placeholder="Enter today's steps" min="0" value="0">
+        <span id="steps-goal-label" style="font-family:var(--font-mono); font-size:13px; color:var(--ink-soft);">goal 10,000</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="steps-bar" style="width:0%; background:var(--plum);"></div></div>
+    </div>
+  </section>
+
+
+
+  <!-- NOTES -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--amber)"></span>Sleep, Mood & Notes</h2>
+    </div>
+    <div class="card amber-top">
+      <div class="notes-grid">
+        <div class="field"><label>Sleep hours</label><input type="number" id="sleep-hours" min="0" max="24" step="0.25" placeholder="e.g. 7"></div>
+        <div class="field"><label>Mood / energy</label><input type="text" id="mood-input" placeholder="e.g. good, tired"></div>
+        <div class="field full"><label>Notes or cravings</label><textarea id="daily-notes" placeholder="Anything you want to remember about today..."></textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--ink)"></span>Daily Summary</h2>
+    </div>
+    <div class="card" style="border-top-color:var(--ink);">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="val" id="s-consumed">0</div><div class="lbl">Consumed</div></div>
+        <div class="stat-box"><div class="val" id="s-burned">0</div><div class="lbl">Burned</div></div>
+        <div class="stat-box"><div class="val" id="s-net">0</div><div class="lbl">Net cal</div></div>
+      </div>
+
+      <div class="macro-row">
+        <div class="macro-label"><span class="name">Protein</span><span class="amt" id="m-protein">0g / 50g</span></div>
+        <div class="macro-track"><div class="macro-fill" id="m-protein-bar" style="width:0%; background:var(--green);"></div></div>
+      </div>
+      <div class="macro-row">
+        <div class="macro-label"><span class="name">Carbs</span><span class="amt" id="m-carbs">0g / 275g</span></div>
+        <div class="macro-track"><div class="macro-fill" id="m-carbs-bar" style="width:0%; background:var(--amber);"></div></div>
+      </div>
+      <div class="macro-row">
+        <div class="macro-label"><span class="name">Fat</span><span class="amt" id="m-fat">0g / 78g</span></div>
+        <div class="macro-track"><div class="macro-fill" id="m-fat-bar" style="width:0%; background:var(--plum);"></div></div>
+      </div>
+      <div class="macro-row">
+        <div class="macro-label"><span class="name">Fiber</span><span class="amt" id="m-fiber">0g / 28g</span></div>
+        <div class="macro-track"><div class="macro-fill" id="m-fiber-bar" style="width:0%; background:var(--green-dark);"></div></div>
+      </div>
+      <div class="macro-row">
+        <div class="macro-label"><span class="name">Sugar</span><span class="amt" id="m-sugar">0g / 50g</span></div>
+        <div class="macro-track"><div class="macro-fill" id="m-sugar-bar" style="width:0%; background:var(--danger);"></div></div>
+      </div>
+
+      <div class="summary-bars">
+        <div class="sb-item">
+          <div class="sb-label"><span>Calories</span><span class="amt" id="sb-cal-amt">0 / 2000</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="sb-cal-bar" style="width:0%; background:var(--green);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-label"><span>Water</span><span class="amt" id="sb-water-amt">0 / 8</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="sb-water-bar" style="width:0%; background:var(--amber);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-label"><span>Steps</span><span class="amt" id="sb-steps-amt">0 / 10,000</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="sb-steps-bar" style="width:0%; background:var(--plum);"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- HISTORY -->
+  <section>
+    <div class="section-head">
+      <h2 class="section-title"><span class="dot" style="background:var(--ink-soft)"></span>7-Day History</h2>
+      <span class="section-note">from saved logs</span>
+    </div>
+    <div class="card" style="border-top-color:var(--ink-soft);">
+      <div style="overflow:auto;"><table class="history-table" id="history-table"></table></div>
+      <div class="action-row">
+        <button class="mini-btn" id="export-csv" type="button">Export CSV</button>
+        <button class="mini-btn secondary" id="export-json" type="button">Backup JSON</button>
+        <button class="mini-btn secondary" id="import-json-btn" type="button">Import JSON</button>
+        <input type="file" id="import-json" accept="application/json" style="display:none;">
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>Your data is saved on this device. <button class="reset-link" id="reset-day">Reset today</button></p>
+    <p class="save-status" id="save-status" role="status" aria-live="polite"><span class="dot-ind"></span><span id="save-status-text">All changes saved</span></p>
+  </footer>
+</div>
+
+<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "dailyHealthTracker.v2";
+  var FOODS = [
+    {name:"Eggs", serving:"1 large", cal:70, protein:6, carbs:0.6, fat:5, fiber:0, sugar:0.6},
+    {name:"Cucumber", serving:"1 cup", cal:16, protein:0.7, carbs:3.8, fat:0.1, fiber:0.5, sugar:1.8},
+    {name:"Tomatoes", serving:"1 medium", cal:22, protein:1.1, carbs:4.8, fat:0.2, fiber:1.5, sugar:3.2},
+    {name:"Chicken", serving:"100g grilled", cal:165, protein:31, carbs:0, fat:3.6, fiber:0, sugar:0},
+    {name:"Fish", serving:"100g baked", cal:208, protein:20, carbs:0, fat:13, fiber:0, sugar:0},
+    {name:"Shrimp", serving:"100g cooked", cal:99, protein:24, carbs:0.2, fat:0.3, fiber:0, sugar:0},
+    {name:"Green beans", serving:"1 cup cooked", cal:44, protein:2.4, carbs:10, fat:0.4, fiber:4, sugar:2},
+    {name:"Vegetable soup", serving:"1 cup", cal:120, protein:4, carbs:20, fat:3, fiber:3, sugar:6},
+    {name:"Apple", serving:"1 medium", cal:95, protein:0.5, carbs:25, fat:0.3, fiber:4.4, sugar:19},
+    {name:"Berries", serving:"1 cup mixed", cal:70, protein:1, carbs:17, fat:0.5, fiber:4, sugar:10},
+    {name:"Rice", serving:"1 cup cooked", cal:205, protein:4.3, carbs:45, fat:0.4, fiber:0.6, sugar:0.1},
+    {name:"Yogurt", serving:"1 cup plain", cal:150, protein:8, carbs:17, fat:8, fiber:0, sugar:17},
+    {name:"Salad", serving:"1 bowl mixed", cal:45, protein:2, carbs:8, fat:0.5, fiber:3, sugar:3}
+  ];
+  var EXERCISES = [{name:"Walking", rate:4},{name:"Gym workout", rate:8},{name:"Swimming", rate:9},{name:"Stretching", rate:2.5},{name:"Strength training", rate:6}];
+  var MEALS = ["breakfast","lunch","dinner","snacks"], MEAL_LABELS = {breakfast:"Breakfast", lunch:"Lunch", dinner:"Dinner", snacks:"Snacks"};
+  var MACRO_REF = { protein:50, carbs:275, fat:78, fiber:28, sugar:50 };
+  var CIRC = 2 * Math.PI * 42;
+
+  var app = loadApp();
+  var currentDate = todayKey();
+  var state = getDay(currentDate);
+
+  function todayKey(){ var d=new Date(); return d.toISOString().slice(0,10); }
+  function blankDay(){ return {meals:{breakfast:[], lunch:[], dinner:[], snacks:[]}, water:0, exercise:[], steps:0, weight:"", sleep:"", mood:"", notes:""}; }
+  function defaultApp(){ return {goals:{calories:2000, water:8, steps:10000, goalWeight:""}, days:{}}; }
+  function loadApp(){ try{ return Object.assign(defaultApp(), JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")); }catch(e){ return defaultApp(); } }
+  var saveStatusTimer = null;
+  function setSaveStatus(kind, text){
+    var el = document.getElementById("save-status");
+    var txt = document.getElementById("save-status-text");
+    if(!el || !txt) return;
+    el.classList.remove("error","saving");
+    if(kind) el.classList.add(kind);
+    txt.textContent = text;
+  }
+  function saveApp(){
+    app.days[currentDate] = state;
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(app));
+      setSaveStatus(null, "All changes saved · " + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+    }catch(e){
+      setSaveStatus("error", "Couldn't save — storage may be full or unavailable");
+      showToast("Your changes aren't being saved on this device.", null, null, "error");
+    }
+    renderHistory();
+  }
+  var debouncedSave = debounce(saveApp, 500);
+  function getDay(date){ app.days[date] = Object.assign(blankDay(), app.days[date]||{}); app.days[date].meals = Object.assign(blankDay().meals, app.days[date].meals||{}); return app.days[date]; }
+  function round1(n){ return Math.round(n*10)/10; }
+  function fmt(n){ return Math.round(Number(n)||0).toLocaleString(); }
+  function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n||0)); }
+  function debounce(fn, ms){ var t; return function(){ var args=arguments, ctx=this; clearTimeout(t); t=setTimeout(function(){ fn.apply(ctx,args); }, ms); }; }
+
+  function showToast(message, undoLabel, onUndo, kind){
+    var wrap = document.getElementById("toast-wrap");
+    if(!wrap) return;
+    var toast = document.createElement("div");
+    toast.className = "toast" + (kind==="error" ? " error-toast" : "");
+    var span = document.createElement("span");
+    span.textContent = message;
+    toast.appendChild(span);
+    var timer;
+    if(undoLabel && onUndo){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = undoLabel;
+      btn.onclick = function(){ clearTimeout(timer); onUndo(); toast.remove(); };
+      toast.appendChild(btn);
+    }
+    wrap.appendChild(toast);
+    timer = setTimeout(function(){ toast.remove(); }, 5000);
+  }
+  function mulFood(food, portion){ var f=Object.assign({}, food); ["cal","protein","carbs","fat","fiber","sugar"].forEach(function(k){ f[k]=round1((f[k]||0)*portion); }); f.serving=(portion===1?"":portion+" × ")+food.serving; return f; }
+  function setRing(circleId, textId, pct, displayVal){ var c=document.getElementById(circleId), t=document.getElementById(textId), p=clamp(pct,0,100); c.style.strokeDasharray=CIRC; c.style.strokeDashoffset=CIRC-(p/100)*CIRC; t.textContent=displayVal; }
+
+  function buildMealsUI(){
+    var container=document.getElementById("meals-container"); container.innerHTML="";
+    MEALS.forEach(function(mealKey){
+      var card=document.createElement("div"); card.className="card";
+      card.innerHTML='<p class="meal-name">'+MEAL_LABELS[mealKey]+'</p><p class="meal-total" id="meal-total-'+mealKey+'"></p><div class="chip-row"></div><ul class="log-list" id="meal-list-'+mealKey+'"></ul>';
+      var chipRow=card.querySelector(".chip-row");
+      FOODS.forEach(function(food){ var chip=document.createElement("button"); chip.className="chip"; chip.type="button"; chip.innerHTML=food.name+'<span class="cal">'+food.cal+' cal</span>'; chip.onclick=function(){ addFood(mealKey, mulFood(food, parseFloat(document.getElementById("portion-select").value)||1)); }; chipRow.appendChild(chip); });
+      var details=document.createElement("details"); details.className="custom-toggle"; details.innerHTML='<summary>Add custom food</summary><div class="custom-form"><div class="field full"><label>Name</label><input type="text" placeholder="e.g. Oatmeal" id="cf-name-'+mealKey+'"></div><div class="field"><label>Calories</label><input type="number" min="0" id="cf-cal-'+mealKey+'"></div><div class="field"><label>Protein (g)</label><input type="number" min="0" id="cf-protein-'+mealKey+'"></div><div class="field"><label>Carbs (g)</label><input type="number" min="0" id="cf-carbs-'+mealKey+'"></div><div class="field"><label>Fat (g)</label><input type="number" min="0" id="cf-fat-'+mealKey+'"></div><div class="field"><label>Fiber (g)</label><input type="number" min="0" id="cf-fiber-'+mealKey+'"></div><div class="field"><label>Sugar (g)</label><input type="number" min="0" id="cf-sugar-'+mealKey+'"></div><button type="button" class="add-btn" id="cf-add-'+mealKey+'">Add to '+MEAL_LABELS[mealKey]+'</button></div>';
+      card.appendChild(details); container.appendChild(card);
+      document.getElementById("cf-add-"+mealKey).onclick=function(){ var nameEl=document.getElementById("cf-name-"+mealKey), name=nameEl.value.trim(); if(!name){nameEl.focus();return;} addFood(mealKey,{name:name,serving:"custom",cal:+document.getElementById("cf-cal-"+mealKey).value||0,protein:+document.getElementById("cf-protein-"+mealKey).value||0,carbs:+document.getElementById("cf-carbs-"+mealKey).value||0,fat:+document.getElementById("cf-fat-"+mealKey).value||0,fiber:+document.getElementById("cf-fiber-"+mealKey).value||0,sugar:+document.getElementById("cf-sugar-"+mealKey).value||0}); ["name","cal","protein","carbs","fat","fiber","sugar"].forEach(function(f){document.getElementById("cf-"+f+"-"+mealKey).value="";}); details.open=false; };
+    });
+  }
+  function addFood(mealKey, food){ state.meals[mealKey].push(food); saveApp(); renderMeal(mealKey); renderAll(); }
+  function removeFood(mealKey, index){
+    var removed = state.meals[mealKey][index];
+    state.meals[mealKey].splice(index,1); saveApp(); renderMeal(mealKey); renderAll();
+    showToast('Removed "'+removed.name+'"', "Undo", function(){
+      state.meals[mealKey].splice(index,0,removed); saveApp(); renderMeal(mealKey); renderAll();
+    });
+  }
+  function renderMeal(mealKey){ var list=document.getElementById("meal-list-"+mealKey), items=state.meals[mealKey]; list.innerHTML=""; if(!items.length){ var h=document.createElement("li"); h.className="empty-hint"; h.textContent="Nothing logged yet."; list.appendChild(h); } else items.forEach(function(item,i){ var li=document.createElement("li"); li.className="log-item"; li.innerHTML='<div><div class="li-name">'+item.name+'</div><div class="li-meta">'+item.serving+'</div></div><div class="li-right"><span class="li-cal">'+Math.round(item.cal)+' cal</span></div>'; var b=document.createElement("button"); b.className="remove-btn"; b.textContent="×"; b.onclick=function(){removeFood(mealKey,i)}; li.querySelector(".li-right").appendChild(b); list.appendChild(li); }); document.getElementById("meal-total-"+mealKey).textContent=Math.round(items.reduce(function(a,it){return a+(it.cal||0)},0))+" cal logged"; }
+
+  function buildExerciseUI(){ var row=document.getElementById("exercise-chips"), sel=document.getElementById("ex-type"); EXERCISES.forEach(function(ex){ var chip=document.createElement("button"); chip.className="chip"; chip.type="button"; chip.textContent=ex.name; chip.onclick=function(){ sel.value=ex.name; updateExPreview(); document.getElementById("ex-duration").focus(); }; row.appendChild(chip); var o=document.createElement("option"); o.value=ex.name; o.textContent=ex.name; sel.appendChild(o); }); var other=document.createElement("option"); other.value="Other"; other.textContent="Other"; sel.appendChild(other); sel.onchange=updateExPreview; document.getElementById("ex-duration").oninput=updateExPreview; document.getElementById("ex-add-btn").onclick=addExercise; updateExPreview(); }
+  function rateFor(name){ return (EXERCISES.filter(function(e){return e.name===name})[0]||{rate:5}).rate; }
+  function updateExPreview(){ var t=document.getElementById("ex-type").value, d=+document.getElementById("ex-duration").value||0; document.getElementById("ex-preview").textContent="≈ "+Math.round(rateFor(t)*d)+" cal for "+d+" min"; }
+  function addExercise(){ var t=document.getElementById("ex-type").value, d=+document.getElementById("ex-duration").value||0; if(d<=0)return; state.exercise.push({type:t,duration:d,cal:Math.round(rateFor(t)*d)}); saveApp(); renderExercise(); renderAll(); }
+  function removeExercise(i){
+    var removed = state.exercise[i];
+    state.exercise.splice(i,1); saveApp(); renderExercise(); renderAll();
+    showToast('Removed "'+removed.type+'"', "Undo", function(){
+      state.exercise.splice(i,0,removed); saveApp(); renderExercise(); renderAll();
+    });
+  }
+  function renderExercise(){ var list=document.getElementById("exercise-list"); list.innerHTML=""; if(!state.exercise.length){ var h=document.createElement("li"); h.className="empty-hint"; h.textContent="No exercise logged yet."; list.appendChild(h); return; } state.exercise.forEach(function(item,i){ var li=document.createElement("li"); li.className="log-item"; li.innerHTML='<div><div class="li-name">'+item.type+'</div><div class="li-meta">'+item.duration+' min</div></div><div class="li-right"><span class="li-cal">-'+item.cal+' cal</span></div>'; var b=document.createElement("button"); b.className="remove-btn"; b.textContent="×"; b.onclick=function(){removeExercise(i)}; li.querySelector(".li-right").appendChild(b); list.appendChild(li); }); }
+
+  function computeTotals(day){ day=day||state; var t={cal:0,protein:0,carbs:0,fat:0,fiber:0,sugar:0}; MEALS.forEach(function(k){ (day.meals[k]||[]).forEach(function(it){ ["cal","protein","carbs","fat","fiber","sugar"].forEach(function(x){t[x]+=it[x]||0;}); }); }); var burned=(day.exercise||[]).reduce(function(sum,e){return sum+(e.cal||0)},0); return {consumed:t.cal,burned:burned,net:t.cal-burned,protein:t.protein,carbs:t.carbs,fat:t.fat,fiber:t.fiber,sugar:t.sugar}; }
+  function setMacro(k,v){ var ref=MACRO_REF[k], pct=clamp((v/ref)*100,0,100); document.getElementById("m-"+k).textContent=round1(v)+"g / "+ref+"g"; document.getElementById("m-"+k+"-bar").style.width=pct+"%"; }
+  function renderAll(){
+    var totals=computeTotals();
+    setRing("ring-cal","ring-cal-text",(totals.net/app.goals.calories)*100,fmt(totals.net)); document.getElementById("ring-cal-sub").textContent="of "+fmt(app.goals.calories);
+    setRing("ring-water","ring-water-text",(state.water/app.goals.water)*100,state.water); document.getElementById("ring-water-sub").textContent="of "+app.goals.water+" cups";
+    setRing("ring-steps","ring-steps-text",(state.steps/app.goals.steps)*100,state.steps>=1000?round1(state.steps/1000)+"k":state.steps); document.getElementById("ring-steps-sub").textContent="of "+fmt(app.goals.steps);
+    document.getElementById("s-consumed").textContent=fmt(totals.consumed); document.getElementById("s-burned").textContent=fmt(totals.burned); document.getElementById("s-net").textContent=fmt(totals.net);
+    ["protein","carbs","fat","fiber","sugar"].forEach(function(k){setMacro(k,totals[k])});
+    var calPct=clamp((totals.consumed/app.goals.calories)*100,0,100), waterPct=clamp((state.water/app.goals.water)*100,0,100), stepsPct=clamp((state.steps/app.goals.steps)*100,0,100);
+    document.getElementById("sb-cal-bar").style.width=calPct+"%"; document.getElementById("sb-cal-amt").textContent=fmt(totals.consumed)+" / "+fmt(app.goals.calories);
+    document.getElementById("water-val").textContent=state.water; document.getElementById("water-goal-label").textContent=app.goals.water; document.getElementById("water-bar").style.width=waterPct+"%"; document.getElementById("sb-water-bar").style.width=waterPct+"%"; document.getElementById("sb-water-amt").textContent=state.water+" / "+app.goals.water;
+    document.getElementById("steps-bar").style.width=stepsPct+"%"; document.getElementById("sb-steps-bar").style.width=stepsPct+"%"; document.getElementById("sb-steps-amt").textContent=fmt(state.steps)+" / "+fmt(app.goals.steps); document.getElementById("steps-goal-label").textContent="goal "+fmt(app.goals.steps);
+    renderWeightProgress();
+  }
+  function renderWeightProgress(){ var w=+state.weight||0, g=+app.goals.goalWeight||0, el=document.getElementById("weight-progress"); el.textContent = w&&g ? (w>g ? "You are "+round1(w-g)+" from your goal weight." : "You reached/passed your goal by "+round1(g-w)+".") : "Add weight to track progress."; }
+  function renderHistory(){ var table=document.getElementById("history-table"); if(!table)return; var dates=Object.keys(app.days).sort().reverse().slice(0,7); var html='<tr><th>Date</th><th>Cal</th><th>Water</th><th>Steps</th><th>Weight</th></tr>'; if(!dates.length) html+='<tr><td colspan="5">No saved days yet.</td></tr>'; dates.forEach(function(d){ var day=app.days[d], totals=computeTotals(day); html+='<tr><td>'+(d===todayKey()?'<span class="today-pill">Today</span> ': '')+d+'</td><td>'+fmt(totals.consumed)+'</td><td>'+day.water+'/'+app.goals.water+'</td><td>'+fmt(day.steps)+'</td><td>'+(day.weight||'—')+'</td></tr>'; }); table.innerHTML=html; }
+
+  function bindInputs(){
+    document.getElementById("log-date").value=currentDate; document.getElementById("log-date").onchange=function(e){ saveApp(); currentDate=e.target.value||todayKey(); state=getDay(currentDate); loadFormValues(); MEALS.forEach(renderMeal); renderExercise(); renderAll(); renderHistory(); };
+    document.getElementById("today-btn").onclick=function(){ document.getElementById("log-date").value=todayKey(); document.getElementById("log-date").dispatchEvent(new Event("change")); };
+    document.getElementById("water-plus").onclick=function(){ state.water++; saveApp(); renderAll(); };
+    document.getElementById("water-minus").onclick=function(){ state.water=Math.max(0,state.water-1); saveApp(); renderAll(); };
+    document.getElementById("water-goal-input").oninput=function(e){ app.goals.water=Math.max(1,+e.target.value||1); saveApp(); renderAll(); };
+    document.getElementById("goal-calories").oninput=function(e){ app.goals.calories=Math.max(1,+e.target.value||2000); saveApp(); renderAll(); };
+    document.getElementById("goal-steps").oninput=function(e){ app.goals.steps=Math.max(1,+e.target.value||10000); saveApp(); renderAll(); };
+    document.getElementById("today-weight").oninput=function(e){ state.weight=e.target.value; saveApp(); renderAll(); };
+    document.getElementById("goal-weight").oninput=function(e){ app.goals.goalWeight=e.target.value; saveApp(); renderAll(); };
+    document.getElementById("steps-input").oninput=function(e){ state.steps=Math.max(0,+e.target.value||0); saveApp(); renderAll(); };
+    document.getElementById("sleep-hours").oninput=function(e){ state.sleep=e.target.value; setSaveStatus("saving","Saving…"); debouncedSave(); };
+    document.getElementById("mood-input").oninput=function(e){ state.mood=e.target.value; setSaveStatus("saving","Saving…"); debouncedSave(); };
+    document.getElementById("daily-notes").oninput=function(e){ state.notes=e.target.value; setSaveStatus("saving","Saving…"); debouncedSave(); };
+    document.getElementById("reset-day").onclick=function(){
+      if(!confirm("Clear this date's logged data?"))return;
+      var backup = state;
+      app.days[currentDate]=blankDay(); state=app.days[currentDate]; saveApp(); loadFormValues(); MEALS.forEach(renderMeal); renderExercise(); renderAll();
+      showToast("Cleared today's log.", "Undo", function(){
+        app.days[currentDate]=backup; state=app.days[currentDate]; saveApp(); loadFormValues(); MEALS.forEach(renderMeal); renderExercise(); renderAll();
+      });
+    };
+    document.getElementById("export-csv").onclick=exportCSV; document.getElementById("export-json").onclick=exportJSON; document.getElementById("import-json-btn").onclick=function(){document.getElementById("import-json").click();}; document.getElementById("import-json").onchange=importJSON;
+  }
+  function loadFormValues(){ document.getElementById("water-goal-input").value=app.goals.water; document.getElementById("goal-calories").value=app.goals.calories; document.getElementById("goal-steps").value=app.goals.steps; document.getElementById("goal-weight").value=app.goals.goalWeight||""; document.getElementById("today-weight").value=state.weight||""; document.getElementById("steps-input").value=state.steps||0; document.getElementById("sleep-hours").value=state.sleep||""; document.getElementById("mood-input").value=state.mood||""; document.getElementById("daily-notes").value=state.notes||""; }
+  function download(name, type, text){ var blob=new Blob([text],{type:type}), a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href)},1000); }
+  function exportCSV(){ var rows=[["date","consumed_cal","burned_cal","net_cal","water","steps","weight","sleep","mood","notes"]]; Object.keys(app.days).sort().forEach(function(d){ var day=app.days[d], t=computeTotals(day); rows.push([d,Math.round(t.consumed),Math.round(t.burned),Math.round(t.net),day.water||0,day.steps||0,day.weight||"",day.sleep||"",day.mood||"",(day.notes||"").replace(/\n/g," ")]); }); download("health-tracker.csv","text/csv", rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(",")}).join("\n")); }
+  function exportJSON(){ download("health-tracker-backup.json","application/json",JSON.stringify(app,null,2)); }
+  function isValidBackup(obj){
+    return obj && typeof obj === "object" && typeof obj.days === "object" && typeof obj.goals === "object";
+  }
+  function importJSON(e){
+    var file=e.target.files[0]; if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(){
+      try{
+        var parsed = JSON.parse(reader.result);
+        if(!isValidBackup(parsed)){ throw new Error("bad shape"); }
+        if(!confirm("This will replace all current data with the imported backup. Continue?")) { e.target.value=""; return; }
+        app=Object.assign(defaultApp(), parsed);
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(app));
+        state=getDay(currentDate); loadFormValues(); MEALS.forEach(renderMeal); renderExercise(); renderAll(); renderHistory();
+        showToast("Backup imported successfully.");
+      }catch(err){
+        showToast("Could not import — this doesn't look like a valid backup file.", null, null, "error");
+      }
+      e.target.value="";
+    };
+    reader.readAsText(file);
+  }
+  function setDateHeader(){ document.getElementById("today-date").textContent=new Date(currentDate+"T12:00:00").toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}); }
+
+  function storageAvailable(){
+    try{
+      var t="__storage_test__";
+      localStorage.setItem(t,t); localStorage.removeItem(t);
+      return true;
+    }catch(e){ return false; }
+  }
+  function init(){
+    setDateHeader(); buildMealsUI(); buildExerciseUI(); bindInputs(); loadFormValues(); MEALS.forEach(renderMeal); renderExercise(); renderAll(); renderHistory();
+    if(!storageAvailable()){
+      setSaveStatus("error", "Storage unavailable — changes won't be saved");
+      showToast("Private browsing or storage limits are blocking saves. Export a backup before closing this tab.", null, null, "error");
+    } else {
+      saveApp();
+    }
+  }
+  document.addEventListener("DOMContentLoaded", init);
+  if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("service-worker.js").catch(function(){}); }); }
+})();
+</script>
+</body>
+</html>
